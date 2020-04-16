@@ -58,10 +58,6 @@ class Delete extends AdvancedStatement
             $values = array_merge($values, $this->orderBy);
         }
 
-        if ($this->limit != null) {
-            $values = array_merge($values, $this->limit->getValues());
-        }
-
         return $values;
     }
 
@@ -75,11 +71,12 @@ class Delete extends AdvancedStatement
         }
 
         $sql = 'DELETE';
-        if (is_array($this->table)) {
-            reset($this->table);
-            $alias = key($this->table);
 
-            $table = $this->table[$alias];
+
+
+        if (is_array($this->table)) {
+            $table = reset($this->table);
+            $alias = key($this->table);
             if (is_string($alias)) {
                 $table .= " AS {$alias}";
             }
@@ -96,16 +93,14 @@ class Delete extends AdvancedStatement
             $sql .= " WHERE {$this->where}";
         }
 
-        if (!empty($this->orderBy)) {
-            $sql .= ' ORDER BY ';
-            foreach ($this->orderBy as $column => $direction) {
-                $sql .= "{$column} {$direction}, ";
-            }
-            $sql = substr($sql, 0, -2);
-        }
+        if ($direction = reset($this->orderBy)) {
+            $column = key($this->orderBy);
+            $sql .= " ORDER BY {$column} {$direction}";
 
-        if ($this->limit !== null) {
-            $sql .= " {$this->limit}";
+            while ($direction = next($this->orderBy)) {
+                $column = key($this->orderBy);
+                $sql .= ", {$column} {$direction}";
+            }
         }
 
         return $sql;

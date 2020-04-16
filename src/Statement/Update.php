@@ -78,10 +78,6 @@ class Update extends AdvancedStatement
             $values = array_merge($values, $this->where->getValues());
         }
 
-        if ($this->limit !== null) {
-            $values = array_merge($values, $this->limit->getValues());
-        }
-
         return $values;
     }
 
@@ -129,16 +125,14 @@ class Update extends AdvancedStatement
             $sql .= " WHERE {$this->where}";
         }
 
-        if (!empty($this->orderBy)) {
-            $sql .= ' ORDER BY ';
-            foreach ($this->orderBy as $column => $direction) {
-                $sql .= "{$column} {$direction}, ";
-            }
-            $sql = substr($sql, 0, -2);
-        }
+        if ($direction = reset($this->orderBy)) {
+            $column = key($this->orderBy);
+            $sql .= " ORDER BY {$column} {$direction}";
 
-        if ($this->limit !== null) {
-            $sql .= " {$this->limit}";
+            while ($direction = next($this->orderBy)) {
+                $column = key($this->orderBy);
+                $sql .= ", {$column} {$direction}";
+            }
         }
 
         return $sql;
